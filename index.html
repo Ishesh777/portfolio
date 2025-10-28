@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Developer Portfolio</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&amp;family=Inter:wght@300;400;500;600&amp;family=Sora:wght@400;600;700;800&amp;family=Manrope:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: #000000;
+            color: #ffffff;
+            overflow-x: hidden;
+            height: 100%;
+            cursor: none;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.8), rgba(255, 0, 255, 0.4));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: screen;
+            transition: transform 0.1s ease;
+        }
+
+        .cursor-trail {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: rgba(0, 255, 255, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        /* Three.js Canvas */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Content Overlay */
+        .content {
+            position: relative;
+            z-index: 10;
+            height: 500%;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .hero-title {
+            font-family: 'Sora', sans-serif;
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #00ffff, #ff00ff, #ffaa00, #00ffff);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease-in-out infinite;
+            text-shadow: 0 0 50px rgba(0, 255, 255, 0.8);
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+            transform: perspective(1000px) rotateX(5deg);
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            color: #a0a0ff;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 3rem;
+            opacity: 0.8;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ffff;
+            font-size: 0.9rem;
+            animation: pulse 2s infinite;
+        }
+
+        /* Sections */
+        .section {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .section-title {
+            font-family: 'Sora', sans-serif;
+            font-size: clamp(2.5rem, 7vw, 5rem);
+            font-weight: 700;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 3rem;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+            letter-spacing: -0.01em;
+        }
+
+        .section-content {
+            max-width: 900px;
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            line-height: 1.7;
+            color: #e0e0e0;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 255, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .section-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.05), rgba(255, 0, 255, 0.05));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            border-radius: 30px;
+        }
+
+        .section-content:hover::before {
+            opacity: 1;
+        }
+
+        .section-content:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 255, 255, 0.4);
+            box-shadow: 0 30px 80px rgba(0, 255, 255, 0.25);
+        }
+
+        /* Skills Grid */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+            max-width: 600px;
+        }
+
+        .skill-item {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .skill-item:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 50px rgba(0, 255, 255, 0.4);
+            border-color: #00ffff;
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        .skill-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Projects Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+            max-width: 1000px;
+        }
+
+        .project-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .project-card:hover::before {
+            left: 100%;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+            border-color: #00ffff;
+        }
+
+        .project-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            color: #ff00ff;
+            margin-bottom: 1rem;
+        }
+
+        /* Journey Section */
+        .journey-timeline {
+            position: relative;
+            max-width: 1000px;
+            margin: 3rem auto;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #00ffff, #ff00ff, #ffaa00);
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin: 3rem 0;
+            position: relative;
+        }
+
+        .timeline-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .timeline-content {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 0 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .timeline-marker {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            animation: pulse 2s infinite;
+        }
+
+        /* Tech Stack Universe */
+        .tech-universe {
+            position: relative;
+            height: 400px;
+            margin: 3rem auto;
+            max-width: 800px;
+        }
+
+        .tech-orbit {
+            position: absolute;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: rotate 20s linear infinite;
+        }
+
+        .tech-orbit:nth-child(1) { width: 200px; height: 200px; top: 100px; left: 50%; margin-left: -100px; }
+        .tech-orbit:nth-child(2) { width: 300px; height: 300px; top: 50px; left: 50%; margin-left: -150px; animation-duration: 30s; }
+        .tech-orbit:nth-child(3) { width: 400px; height: 400px; top: 0; left: 50%; margin-left: -200px; animation-duration: 40s; }
+
+        .tech-item {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover {
+            transform: scale(1.2);
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+
+        /* Testimonials */
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+            max-width: 1200px;
+        }
+
+        .testimonial-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 0, 255, 0.2);
+            border-radius: 25px;
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .testimonial-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 0, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+            opacity: 0;
+        }
+
+        .testimonial-card:hover::before {
+            opacity: 1;
+            transform: rotate(45deg) translate(50%, 50%);
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 0, 255, 0.4);
+            box-shadow: 0 25px 60px rgba(255, 0, 255, 0.2);
+        }
+
+        /* Contact Section */
+        .contact-portal {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 2rem auto;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
+            border: 2px solid #00ffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: portalPulse 3s infinite;
+        }
+
+        .contact-portal:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+        }
+
+        .contact-button {
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .contact-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+
+        /* Animations */
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: translateX(-50%) translateY(0); }
+            50% { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+        }
+
+        @keyframes portalPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(0, 255, 255, 0.6); }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(4); opacity: 0; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .section {
+                padding: 2rem 1rem;
+            }
+            
+            .section-content {
+                padding: 1.5rem;
+            }
+            
+            .skills-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 1rem;
+            }
+            
+            .projects-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="cursor"></div>
+  <div id="canvas-container"></div>
+  <div class="content"><!-- Hero Section -->
+   <section class="hero">
+    <h1 class="hero-title" id="developer-name">ALEX NOVA</h1>
+    <p class="hero-subtitle" id="tagline">Full Stack Developer &amp; Digital Architect</p>
+    <div class="scroll-indicator">
+     ↓ Scroll to explore ↓
+    </div>
+   </section><!-- About Section -->
+   <section class="section">
+    <h2 class="section-title">About</h2>
+    <div class="section-content">
+     <p id="about-text">Crafting digital experiences that push the boundaries of what's possible. I specialize in creating immersive web applications using cutting-edge technologies like Three.js, React, and Node.js.</p>
+     <div class="skills-grid">
+      <div class="skill-item">
+       <div class="skill-icon">
+        ⚛️
+       </div>
+       <div>
+        React
+       </div>
+      </div>
+      <div class="skill-item">
+       <div class="skill-icon">
+        🟢
+       </div>
+       <div>
+        Node.js
+       </div>
+      </div>
+      <div class="skill-item">
+       <div class="skill-icon">
+        🎮
+       </div>
+       <div>
+        Three.js
+       </div>
+      </div>
+      <div class="skill-item">
+       <div class="skill-icon">
+        🐍
+       </div>
+       <div>
+        Python
+       </div>
+      </div>
+      <div class="skill-item">
+       <div class="skill-icon">
+        🎨
+       </div>
+       <div>
+        WebGL
+       </div>
+      </div>
+      <div class="skill-item">
+       <div class="skill-icon">
+        ⚡
+       </div>
+       <div>
+        TypeScript
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- Journey Section -->
+   <section class="section">
+    <h2 class="section-title">Journey</h2>
+    <div class="journey-timeline">
+     <div class="timeline-line"></div>
+     <div class="timeline-item">
+      <div class="timeline-marker"></div>
+      <div class="timeline-content">
+       <h3 style="color: #00ffff; font-family: 'Sora', sans-serif; margin-bottom: 1rem;">2024 - Full Stack Mastery</h3>
+       <p>Achieved expertise in modern web technologies, specializing in 3D web experiences and interactive design.</p>
+      </div>
+     </div>
+     <div class="timeline-item">
+      <div class="timeline-marker"></div>
+      <div class="timeline-content">
+       <h3 style="color: #ff00ff; font-family: 'Sora', sans-serif; margin-bottom: 1rem;">2023 - WebGL Pioneer</h3>
+       <p>Pioneered immersive web experiences using Three.js and custom shader programming.</p>
+      </div>
+     </div>
+     <div class="timeline-item">
+      <div class="timeline-marker"></div>
+      <div class="timeline-content">
+       <h3 style="color: #ffaa00; font-family: 'Sora', sans-serif; margin-bottom: 1rem;">2022 - React Specialist</h3>
+       <p>Mastered React ecosystem and modern JavaScript frameworks for scalable applications.</p>
+      </div>
+     </div>
+    </div>
+   </section><!-- Tech Stack Universe -->
+   <section class="section">
+    <h2 class="section-title">Tech Universe</h2>
+    <div class="tech-universe">
+     <div class="tech-orbit">
+      <div class="tech-item" style="top: -30px; left: 50%; margin-left: -30px;">
+       ⚛️
+      </div>
+      <div class="tech-item" style="bottom: -30px; left: 50%; margin-left: -30px;">
+       🟢
+      </div>
+     </div>
+     <div class="tech-orbit">
+      <div class="tech-item" style="top: -30px; left: 50%; margin-left: -30px;">
+       🎮
+      </div>
+      <div class="tech-item" style="right: -30px; top: 50%; margin-top: -30px;">
+       ⚡
+      </div>
+      <div class="tech-item" style="bottom: -30px; left: 50%; margin-left: -30px;">
+       🐍
+      </div>
+      <div class="tech-item" style="left: -30px; top: 50%; margin-top: -30px;">
+       🎨
+      </div>
+     </div>
+     <div class="tech-orbit">
+      <div class="tech-item" style="top: -30px; left: 50%; margin-left: -30px;">
+       📱
+      </div>
+      <div class="tech-item" style="right: -30px; top: 30%; margin-top: -30px;">
+       🔥
+      </div>
+      <div class="tech-item" style="right: -30px; bottom: 30%; margin-bottom: -30px;">
+       💾
+      </div>
+      <div class="tech-item" style="bottom: -30px; left: 50%; margin-left: -30px;">
+       🌐
+      </div>
+      <div class="tech-item" style="left: -30px; bottom: 30%; margin-bottom: -30px;">
+       ☁️
+      </div>
+      <div class="tech-item" style="left: -30px; top: 30%; margin-top: -30px;">
+       🔧
+      </div>
+     </div>
+    </div>
+   </section><!-- Projects Section -->
+   <section class="section">
+    <h2 class="section-title">Projects</h2>
+    <div class="projects-grid">
+     <div class="project-card">
+      <h3 class="project-title">Quantum Dashboard</h3>
+      <p>An immersive 3D data visualization platform built with Three.js and WebGL shaders.</p>
+     </div>
+     <div class="project-card">
+      <h3 class="project-title">Neural Network Visualizer</h3>
+      <p>Interactive machine learning visualization tool with real-time 3D neural network rendering.</p>
+     </div>
+     <div class="project-card">
+      <h3 class="project-title">Holographic UI System</h3>
+      <p>Next-generation user interface components with volumetric lighting and particle effects.</p>
+     </div>
+    </div>
+   </section><!-- Testimonials Section -->
+   <section class="section">
+    <h2 class="section-title">Collaborations</h2>
+    <div class="testimonials-grid">
+     <div class="testimonial-card">
+      <p style="font-style: italic; margin-bottom: 1.5rem; font-size: 1.1rem;">"Alex created an incredible 3D experience that transformed our brand presence. The attention to detail and technical expertise is unmatched."</p>
+      <div style="color: #00ffff; font-weight: 600;">
+       — Sarah Chen, Creative Director
+      </div>
+     </div>
+     <div class="testimonial-card">
+      <p style="font-style: italic; margin-bottom: 1.5rem; font-size: 1.1rem;">"Working with Alex was like having a digital architect who could bring impossible ideas to life. Pure innovation."</p>
+      <div style="color: #ff00ff; font-weight: 600;">
+       — Marcus Rodriguez, Tech Lead
+      </div>
+     </div>
+     <div class="testimonial-card">
+      <p style="font-style: italic; margin-bottom: 1.5rem; font-size: 1.1rem;">"The interactive portfolio Alex built exceeded all expectations. It's not just a website, it's an experience."</p>
+      <div style="color: #ffaa00; font-weight: 600;">
+       — Emma Thompson, Product Manager
+      </div>
+     </div>
+    </div>
+   </section><!-- Contact Section -->
+   <section class="section">
+    <h2 class="section-title">Contact</h2>
+    <div class="section-content">
+     <p>Ready to create something extraordinary together?</p>
+     <div class="contact-portal"><button class="contact-button" id="contact-button">Let's Build the Future Together</button>
+     </div>
+    </div>
+   </section>
+  </div>
+  <script>
+        // Configuration object for editable content
+        const defaultConfig = {
+            developer_name: "ALEX NOVA",
+            tagline: "Full Stack Developer & Digital Architect",
+            about_text: "Crafting digital experiences that push the boundaries of what's possible. I specialize in creating immersive web applications using cutting-edge technologies like Three.js, React, and Node.js.",
+            contact_button: "Let's Build the Future Together"
+        };
+
+        let config = { ...defaultConfig };
+
+        // Three.js Scene Setup
+        let scene, camera, renderer, particles, hologram;
+        let mouseX = 0, mouseY = 0;
+        let scrollY = 0;
+
+        function initThreeJS() {
+            // Scene
+            scene = new THREE.Scene();
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // Create particle system
+            createParticles();
+            
+            // Create holographic elements
+            createHologram();
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+            scene.add(ambientLight);
+            
+            const pointLight = new THREE.PointLight(0x00ffff, 1, 100);
+            pointLight.position.set(0, 0, 10);
+            scene.add(pointLight);
+            
+            const pointLight2 = new THREE.PointLight(0xff00ff, 0.8, 100);
+            pointLight2.position.set(-10, 5, 5);
+            scene.add(pointLight2);
+        }
+
+        function createParticles() {
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const colors = [];
+            const velocities = [];
+            
+            for (let i = 0; i < 3000; i++) {
+                vertices.push(
+                    (Math.random() - 0.5) * 150,
+                    (Math.random() - 0.5) * 150,
+                    (Math.random() - 0.5) * 150
+                );
+                
+                // Enhanced color palette
+                const colorChoice = Math.random();
+                const color = new THREE.Color();
+                if (colorChoice < 0.3) {
+                    color.setHex(0x00ffff); // Cyan
+                } else if (colorChoice < 0.6) {
+                    color.setHex(0xff00ff); // Magenta
+                } else if (colorChoice < 0.8) {
+                    color.setHex(0xffaa00); // Amber
+                } else {
+                    color.setHex(0x8a2be2); // Violet
+                }
+                colors.push(color.r, color.g, color.b);
+                
+                // Add velocity for dynamic movement
+                velocities.push(
+                    (Math.random() - 0.5) * 0.02,
+                    (Math.random() - 0.5) * 0.02,
+                    (Math.random() - 0.5) * 0.02
+                );
+            }
+            
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 0.15,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending
+            });
+            
+            particles = new THREE.Points(geometry, material);
+            particles.userData = { velocities };
+            scene.add(particles);
+        }
+
+        function createHologram() {
+            // Create floating geometric shapes
+            const geometry = new THREE.TorusGeometry(1, 0.3, 16, 100);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x00ffff,
+                transparent: true,
+                opacity: 0.3,
+                wireframe: true
+            });
+            
+            hologram = new THREE.Mesh(geometry, material);
+            hologram.position.set(3, 0, 0);
+            scene.add(hologram);
+            
+            // Add more holographic elements
+            const geometry2 = new THREE.OctahedronGeometry(0.8);
+            const material2 = new THREE.MeshPhongMaterial({
+                color: 0xff00ff,
+                transparent: true,
+                opacity: 0.4,
+                wireframe: true
+            });
+            
+            const hologram2 = new THREE.Mesh(geometry2, material2);
+            hologram2.position.set(-3, 2, -1);
+            scene.add(hologram2);
+            
+            // Store reference for animation
+            hologram.companion = hologram2;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Dynamic particle movement
+            if (particles && particles.userData.velocities) {
+                const positions = particles.geometry.attributes.position.array;
+                const velocities = particles.userData.velocities;
+                
+                for (let i = 0; i < positions.length; i += 3) {
+                    positions[i] += velocities[i];
+                    positions[i + 1] += velocities[i + 1];
+                    positions[i + 2] += velocities[i + 2];
+                    
+                    // Boundary wrapping
+                    if (Math.abs(positions[i]) > 75) velocities[i] *= -1;
+                    if (Math.abs(positions[i + 1]) > 75) velocities[i + 1] *= -1;
+                    if (Math.abs(positions[i + 2]) > 75) velocities[i + 2] *= -1;
+                }
+                
+                particles.geometry.attributes.position.needsUpdate = true;
+                particles.rotation.x += 0.0005;
+                particles.rotation.y += 0.001;
+            }
+            
+            // Enhanced holographic elements
+            if (hologram) {
+                const time = Date.now() * 0.001;
+                hologram.rotation.x = Math.sin(time * 0.5) * 0.1;
+                hologram.rotation.y += 0.02;
+                hologram.position.y = Math.sin(time) * 0.5;
+                
+                if (hologram.companion) {
+                    hologram.companion.rotation.x = Math.cos(time * 0.7) * 0.1;
+                    hologram.companion.rotation.z += 0.015;
+                    hologram.companion.position.y = Math.cos(time * 1.2) * 0.3;
+                }
+            }
+            
+            // Smooth mouse interaction with easing
+            const targetX = mouseX * 0.002;
+            const targetY = -mouseY * 0.002;
+            camera.position.x += (targetX - camera.position.x) * 0.02;
+            camera.position.y += (targetY - camera.position.y) * 0.02;
+            
+            // Enhanced scroll-based camera movement
+            const scrollProgress = scrollY / (document.body.scrollHeight - window.innerHeight);
+            const targetZ = 5 + scrollProgress * 15;
+            const targetRotX = scrollProgress * 0.3;
+            
+            camera.position.z += (targetZ - camera.position.z) * 0.05;
+            camera.rotation.x += (targetRotX - camera.rotation.x) * 0.05;
+            
+            // Dynamic lighting based on scroll
+            if (scene.children.length > 3) {
+                const pointLight = scene.children[2];
+                const pointLight2 = scene.children[3];
+                
+                pointLight.intensity = 1 + Math.sin(Date.now() * 0.002) * 0.3;
+                pointLight2.intensity = 0.8 + Math.cos(Date.now() * 0.003) * 0.2;
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+        // Advanced cursor system
+        const cursor = document.querySelector('.cursor');
+        const trails = [];
+        
+        // Create cursor trails
+        for (let i = 0; i < 10; i++) {
+            const trail = document.createElement('div');
+            trail.className = 'cursor-trail';
+            document.body.appendChild(trail);
+            trails.push({
+                element: trail,
+                x: 0,
+                y: 0,
+                delay: i * 2
+            });
+        }
+        
+        let cursorX = 0, cursorY = 0;
+        
+        // Event Listeners
+        document.addEventListener('mousemove', (event) => {
+            mouseX = event.clientX - window.innerWidth / 2;
+            mouseY = event.clientY - window.innerHeight / 2;
+            
+            cursorX = event.clientX;
+            cursorY = event.clientY;
+            
+            // Update main cursor
+            cursor.style.left = cursorX - 10 + 'px';
+            cursor.style.top = cursorY - 10 + 'px';
+        });
+        
+        // Animate cursor trails
+        function animateTrails() {
+            trails.forEach((trail, index) => {
+                const targetX = cursorX - 2;
+                const targetY = cursorY - 2;
+                
+                trail.x += (targetX - trail.x) * (0.1 - index * 0.01);
+                trail.y += (targetY - trail.y) * (0.1 - index * 0.01);
+                
+                trail.element.style.left = trail.x + 'px';
+                trail.element.style.top = trail.y + 'px';
+                trail.element.style.opacity = (1 - index * 0.1);
+            });
+            
+            requestAnimationFrame(animateTrails);
+        }
+        
+        animateTrails();
+
+        window.addEventListener('scroll', () => {
+            scrollY = window.pageYOffset;
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Enhanced contact button interaction
+        document.getElementById('contact-button').addEventListener('click', (e) => {
+            // Create ripple effect
+            const ripple = document.createElement('div');
+            ripple.style.position = 'absolute';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(0, 255, 255, 0.6)';
+            ripple.style.transform = 'scale(0)';
+            ripple.style.animation = 'ripple 0.6s linear';
+            ripple.style.left = '50%';
+            ripple.style.top = '50%';
+            ripple.style.width = '20px';
+            ripple.style.height = '20px';
+            ripple.style.marginLeft = '-10px';
+            ripple.style.marginTop = '-10px';
+            ripple.style.pointerEvents = 'none';
+            
+            e.target.style.position = 'relative';
+            e.target.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+            
+            // Enhanced particle burst effect
+            if (particles) {
+                const positions = particles.geometry.attributes.position.array;
+                const velocities = particles.userData.velocities;
+                
+                for (let i = 0; i < positions.length; i += 3) {
+                    const distance = Math.sqrt(
+                        positions[i] * positions[i] + 
+                        positions[i + 1] * positions[i + 1] + 
+                        positions[i + 2] * positions[i + 2]
+                    );
+                    
+                    if (distance < 30) {
+                        velocities[i] += (Math.random() - 0.5) * 0.1;
+                        velocities[i + 1] += (Math.random() - 0.5) * 0.1;
+                        velocities[i + 2] += (Math.random() - 0.5) * 0.1;
+                    }
+                }
+            }
+        });
+        
+        // Add hover effects to interactive elements
+        document.querySelectorAll('.project-card, .skill-item, .testimonial-card, .tech-item').forEach(element => {
+            element.addEventListener('mouseenter', () => {
+                cursor.style.transform = 'scale(1.5)';
+                cursor.style.background = 'radial-gradient(circle, rgba(255, 0, 255, 0.8), rgba(0, 255, 255, 0.4))';
+            });
+            
+            element.addEventListener('mouseleave', () => {
+                cursor.style.transform = 'scale(1)';
+                cursor.style.background = 'radial-gradient(circle, rgba(0, 255, 255, 0.8), rgba(255, 0, 255, 0.4))';
+            });
+        });
+
+        // Element SDK Integration
+        async function onConfigChange(newConfig) {
+            config = { ...config, ...newConfig };
+            
+            // Update DOM elements
+            const developerNameEl = document.getElementById('developer-name');
+            const taglineEl = document.getElementById('tagline');
+            const aboutTextEl = document.getElementById('about-text');
+            const contactButtonEl = document.getElementById('contact-button');
+            
+            if (developerNameEl) {
+                developerNameEl.textContent = config.developer_name || defaultConfig.developer_name;
+            }
+            if (taglineEl) {
+                taglineEl.textContent = config.tagline || defaultConfig.tagline;
+            }
+            if (aboutTextEl) {
+                aboutTextEl.textContent = config.about_text || defaultConfig.about_text;
+            }
+            if (contactButtonEl) {
+                contactButtonEl.textContent = config.contact_button || defaultConfig.contact_button;
+            }
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["developer_name", config.developer_name || defaultConfig.developer_name],
+                ["tagline", config.tagline || defaultConfig.tagline],
+                ["about_text", config.about_text || defaultConfig.about_text],
+                ["contact_button", config.contact_button || defaultConfig.contact_button]
+            ]);
+        }
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', () => {
+            initThreeJS();
+            animate();
+            
+            // Initialize Element SDK
+            if (window.elementSdk) {
+                window.elementSdk.init({
+                    defaultConfig,
+                    onConfigChange,
+                    mapToCapabilities,
+                    mapToEditPanelValues
+                });
+            }
+        });
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'995bf08cd77c963c',t:'MTc2MTY3MDMwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
